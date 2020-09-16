@@ -15,7 +15,8 @@ from electionguard.serializable import (
     maybe_base64_to_int,
     int_to_maybe_base64,
     Serializable,
-    ENCODE_THRESHOLD, read_json_file,
+    ENCODE_THRESHOLD,
+    read_json_file,
 )
 from electionguardtest.group import elements_mod_p
 
