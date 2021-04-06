@@ -24,8 +24,9 @@ typish = '*'
 numpy = '>=1.18.2'
 jsons = '>=1.1.2'
 psutil = '>=5.7.2'
-cryptography = ">=3.2"
+cryptography = ">=3.4.7"
 jsonschema = ">=3.2"
+urllib3 = ">=1.26.4"
 
 [requires]
 python_version = "3.8"

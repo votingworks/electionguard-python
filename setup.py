@@ -68,7 +68,8 @@ setup(
         "numpy>=1.18.2",
         "jsons>=1.1.2",
         "jsonschema>=3.2",
-        "cryptography",
+        "cryptography>=3.4.7",
         "psutil>=5.7.2",
+        "urllib3>=1.26.4"
     ],
 )
