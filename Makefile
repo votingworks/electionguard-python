@@ -76,7 +76,7 @@ lint:
 	@echo 2.Black Formatting
 	pipenv run black --check .
 	@echo 3.Mypy Static Typing
-	pipenv run mypy bench src stubs tests setup.py
+	pipenv run mypy bench src stubs setup.py
 	@echo 4.Package Metadata
 	pipenv run python setup.py --quiet sdist bdist_wheel
 	pipenv run twine check dist/*
