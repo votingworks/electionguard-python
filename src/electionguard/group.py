@@ -7,7 +7,15 @@ from dataclasses import dataclass
 from secrets import randbelow
 from typing import Any, Final, Optional, Union, List
 
-from gmpy2 import powmod, invert, to_binary, from_binary, random_state, xmpz, mpz_urandomb
+from gmpy2 import (
+    powmod,
+    invert,
+    to_binary,
+    from_binary,
+    random_state,
+    xmpz,
+    mpz_urandomb,
+)
 
 # Constants used by ElectionGuard
 Q: Final[int] = pow(2, 256) - 189
@@ -170,6 +178,7 @@ class ElementModP:
 
 
 # Common constants
+_negative_one_mpz = xmpz(-1)
 _zero_mpz = xmpz(0)
 _one_mpz = xmpz(1)
 _two_mpz = xmpz(2)
@@ -231,21 +240,21 @@ class PowRadix:
     k: int
     table: List[List[xmpz]]
 
-    def __init__(self, basis, k=1, n=None):
+    def __init__(self, basis: xmpz, k: int = 1, n: int = None):
         # if n is given, then looking for the best k
         if n:
             k = 1
-            while (0.69*k-1) * 2**k < n:  # Equality happens for optimal k
+            while (0.69 * k - 1) * 2 ** k < n:  # Equality happens for optimal k
                 k += 1
             k -= 1  # limiting amount of precomputation
         self.table_length = -(-_e_size // k)  # Double negative to take the ceiling
         self.k = k
-        table = []
+        table: List[List[xmpz]] = []
         row_basis = basis
         running_basis = row_basis
         for _ in range(self.table_length):
-            row = [1]
-            for j in range(1, 2**k):
+            row = [_one_mpz]
+            for j in range(1, 2 ** k):
                 row.append(running_basis)
                 running_basis = running_basis * row_basis % _P_mpz
             table.append(row)
@@ -255,7 +264,7 @@ class PowRadix:
     def pow(self, e: xmpz) -> xmpz:
         y = _one_mpz
         for i in range(self.table_length):
-            e_slice = e[i * self.k: (i+1) * self.k]
+            e_slice = e[i * self.k : (i + 1) * self.k]
             y = y * self.table[i][e_slice] % _P_mpz
         return y
 
@@ -265,7 +274,7 @@ class PowRadix:
         slice_start = 0
         for row in self.table:
             slice_end = slice_start + self.k
-            e_slice = e[slice_start: slice_end]
+            e_slice = e[slice_start:slice_end]
             slice_start = slice_end
             y = y * row[e_slice] % _P_mpz
         return y
@@ -437,7 +446,7 @@ def mult_inv_p(e: ElementModPOrQorInt) -> ElementModP:
         e = int_to_p_unchecked(e)
 
     assert e.elem != 0, "No multiplicative inverse for zero"
-    return ElementModP(powmod(e.elem, -1, P))
+    return ElementModP(powmod(e.elem, _negative_one_mpz, _P_mpz))
 
 
 def pow_p(b: ElementModPOrQorInt, e: ElementModPOrQorInt) -> ElementModP:
@@ -453,7 +462,7 @@ def pow_p(b: ElementModPOrQorInt, e: ElementModPOrQorInt) -> ElementModP:
     if isinstance(e, int):
         e = int_to_p_unchecked(e)
 
-    return ElementModP(powmod(b.elem, e.elem, P))
+    return ElementModP(powmod(b.elem, e.elem, _P_mpz))
 
 
 def pow_q(b: ElementModQorInt, e: ElementModQorInt) -> ElementModQ:
@@ -469,7 +478,7 @@ def pow_q(b: ElementModQorInt, e: ElementModQorInt) -> ElementModQ:
     if isinstance(e, int):
         e = int_to_q_unchecked(e)
 
-    return ElementModQ(powmod(b.elem, e.elem, Q))
+    return ElementModQ(powmod(b.elem, e.elem, _Q_mpz))
 
 
 def mult_p(*elems: ElementModPOrQorInt) -> ElementModP:
