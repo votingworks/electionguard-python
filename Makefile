@@ -77,13 +77,13 @@ lint:
 	pipenv run black --check .
 	@echo 3.Mypy Static Typing
 	pipenv run mypy bench src stubs setup.py
-	@echo 4.Package Metadata
-	pipenv run python setup.py --quiet sdist bdist_wheel
-	pipenv run twine check dist/*
-	@echo 5.Docstring
-	pipenv run pydocstyle
-	@echo 6.Documentation
-	pipenv run mkdocs build --strict
+# 	@echo 4.Package Metadata
+# 	pipenv run python setup.py --quiet sdist bdist_wheel
+# 	pipenv run twine check dist/*
+# 	@echo 5.Docstring
+# 	pipenv run pydocstyle
+# 	@echo 6.Documentation
+# 	pipenv run mkdocs build --strict
 
 validate: 
 	@echo ✅ VALIDATE
