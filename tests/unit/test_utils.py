@@ -5,21 +5,21 @@ from electionguard.utils import to_ticks
 
 
 class TestUtils(TestCase):
-    def test_conversion_to_ticks_from_utc(self):
+    def test_conversion_to_ticks_from_utc(self) -> None:
         # Act
         ticks = to_ticks(datetime.now(timezone.utc))
 
         self.assertIsNotNone(ticks)
         self.assertGreater(ticks, 0)
 
-    def test_conversion_to_ticks_from_local(self):
+    def test_conversion_to_ticks_from_local(self) -> None:
         # Act
         ticks = to_ticks(datetime.now())
 
         self.assertIsNotNone(ticks)
         self.assertGreater(ticks, 0)
 
-    def test_conversion_to_ticks_with_tz(self):
+    def test_conversion_to_ticks_with_tz(self) -> None:
         # Arrange
         now = datetime.now()
         now_with_tz = (now).astimezone()
@@ -40,7 +40,7 @@ class TestUtils(TestCase):
         self.assertEqual(1, len(unique_ticks))
         self.assertTrue(ticks_now in unique_ticks)
 
-    def test_conversion_to_ticks_produces_valid_epoch(self):
+    def test_conversion_to_ticks_produces_valid_epoch(self) -> None:
         # Arrange
         now = datetime.now()
 

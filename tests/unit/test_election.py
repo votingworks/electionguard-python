@@ -17,7 +17,7 @@ ballot_factory = BallotFactory.BallotFactory()
 
 
 class TestElection(unittest.TestCase):
-    def test_simple_election_is_valid(self):
+    def test_simple_election_is_valid(self) -> None:
 
         # Act
         subject = election_factory.get_simple_election_from_file()
@@ -27,7 +27,7 @@ class TestElection(unittest.TestCase):
         self.assertEqual(subject.election_scope_id, "jefferson-county-primary")
         self.assertTrue(subject.is_valid())
 
-    def test_simple_election_can_serialize(self):
+    def test_simple_election_can_serialize(self) -> None:
         # Arrange
         subject = election_factory.get_simple_election_from_file()
         intermediate = subject.to_json()
@@ -39,7 +39,7 @@ class TestElection(unittest.TestCase):
         self.assertIsNotNone(result.election_scope_id)
         self.assertEqual(result.election_scope_id, "jefferson-county-primary")
 
-    def test_election_has_deterministic_hash(self):
+    def test_election_has_deterministic_hash(self) -> None:
 
         # Act
         subject1 = election_factory.get_simple_election_from_file()
@@ -48,7 +48,7 @@ class TestElection(unittest.TestCase):
         # Assert
         self.assertEqual(subject1.crypto_hash(), subject2.crypto_hash())
 
-    def test_election_hash_is_consistent_regardless_of_format(self):
+    def test_election_hash_is_consistent_regardless_of_format(self) -> None:
 
         # Act
         subject1 = election_factory.get_simple_election_from_file()
@@ -69,7 +69,7 @@ class TestElection(unittest.TestCase):
 
     def test_election_from_file_generates_consistent_internal_description_contest_hashes(
         self,
-    ):
+    ) -> None:
         # Arrange
         comparator = election_factory.get_simple_election_from_file()
         subject = InternalElectionDescription(comparator)
@@ -81,7 +81,7 @@ class TestElection(unittest.TestCase):
                 if expected.object_id == actual.object_id:
                     self.assertEqual(expected.crypto_hash(), actual.crypto_hash())
 
-    def test_contest_description_valid_input_succeeds(self):
+    def test_contest_description_valid_input_succeeds(self) -> None:
         description = ContestDescriptionWithPlaceholders(
             object_id="0@A.com-contest",
             electoral_district_id="0@A.com-gp-unit",
@@ -115,7 +115,7 @@ class TestElection(unittest.TestCase):
 
         self.assertTrue(description.is_valid())
 
-    def test_contest_description_invalid_input_fails(self):
+    def test_contest_description_invalid_input_fails(self) -> None:
 
         description = ContestDescriptionWithPlaceholders(
             object_id="0@A.com-contest",

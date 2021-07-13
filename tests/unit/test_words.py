@@ -4,7 +4,7 @@ from electionguard.words import get_word, get_index_from_word
 
 
 class TestWord(TestCase):
-    def test_get_word(self):
+    def test_get_word(self) -> None:
         # Arrange
         INDEX_MIN = 0
         INDEX_RANDOM_1 = 100
@@ -25,7 +25,7 @@ class TestWord(TestCase):
         self.assertEqual(word_max, "system")
         self.assertEqual(INDEX_RANDOM_1, reverse_find_of_index_random_1)
 
-    def test_get_word_when_out_of_range(self):
+    def test_get_word_when_out_of_range(self) -> None:
         # Arrange
         INDEX_BELOW_MIN = -1
         INDEX_ABOVE_MAX = 4096
@@ -38,7 +38,7 @@ class TestWord(TestCase):
         self.assertIsNone(word_past_min)
         self.assertIsNone(word_past_max)
 
-    def test_get_index_of_word_not_in_list(self):
+    def test_get_index_of_word_not_in_list(self) -> None:
         # Arrange
         FAILING_WORD = "thiswordshouldfail"
 

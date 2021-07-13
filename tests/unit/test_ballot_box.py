@@ -22,7 +22,7 @@ SEED_HASH = EncryptionDevice("Location").get_hash()
 
 
 class TestBallotBox(TestCase):
-    def test_ballot_box_cast_ballot(self):
+    def test_ballot_box_cast_ballot(self) -> None:
         # Arrange
         keypair = elgamal_keypair_from_secret(int_to_q(2))
         election = election_factory.get_fake_election()
@@ -49,7 +49,7 @@ class TestBallotBox(TestCase):
         self.assertIsNone(subject.cast(data))  # cannot cast again
         self.assertIsNone(subject.spoil(data))  # cannot spoil a ballot already cast
 
-    def test_ballot_box_spoil_ballot(self):
+    def test_ballot_box_spoil_ballot(self) -> None:
         # Arrange
         keypair = elgamal_keypair_from_secret(int_to_q(2))
         election = election_factory.get_fake_election()
@@ -75,7 +75,7 @@ class TestBallotBox(TestCase):
         self.assertIsNone(subject.spoil(data))  # cannot spoil again
         self.assertIsNone(subject.cast(data))  # cannot cast a ballot alraedy spoiled
 
-    def test_cast_ballot(self):
+    def test_cast_ballot(self) -> None:
         # Arrange
         keypair = elgamal_keypair_from_secret(int_to_q(2))
         election = election_factory.get_fake_election()
@@ -104,7 +104,7 @@ class TestBallotBox(TestCase):
             accept_ballot(data, BallotBoxState.SPOILED, metadata, context, store)
         )  # cannot cspoil a ballot already cast
 
-    def test_spoil_ballot(self):
+    def test_spoil_ballot(self) -> None:
         # Arrange
         keypair = elgamal_keypair_from_secret(int_to_q(2))
         election = election_factory.get_fake_election()

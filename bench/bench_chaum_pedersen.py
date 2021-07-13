@@ -1,7 +1,6 @@
+from math import sqrt
 from timeit import default_timer as timer
 from typing import Dict, List, NamedTuple, Tuple
-
-from numpy import average, std
 
 from electionguard.chaum_pedersen import make_disjunctive_chaum_pedersen_zero
 
@@ -44,6 +43,23 @@ def chaum_pedersen_bench(bi: BenchInput) -> Tuple[float, float]:
 def identity(x: int) -> int:
     """Placeholder function used just to warm up the parallel mapper prior to benchmarking."""
     return x
+
+
+def average(l: List[float]) -> float:
+    """Average of a list of numbers"""
+    n = len(l)
+    if n == 0:
+        return 0
+    return sum(l) / n
+
+
+def std(l: List[float]) -> float:
+    """Standard deviation of a list of numbers"""
+    n = len(l)
+    if n == 0:
+        return 0
+    avg = average(l)
+    return sqrt(sum([(avg - i) * (avg - i) for i in l]))
 
 
 if __name__ == "__main__":

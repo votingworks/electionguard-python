@@ -12,7 +12,7 @@ from electionguard.tracker import (
 
 
 class TestTracker(TestCase):
-    def test_tracker_hash_rotates(self):
+    def test_tracker_hash_rotates(self) -> None:
         # Arrange
         device = EncryptionDevice("Location")
         ballot_hash_1 = ONE_MOD_Q
@@ -39,7 +39,7 @@ class TestTracker(TestCase):
         self.assertNotEqual(tracker_2_hash, device_hash)
         self.assertNotEqual(tracker_1_hash, tracker_2_hash)
 
-    def test_tracker_converts_to_words(self):
+    def test_tracker_converts_to_words(self) -> None:
         # Arrange
         device = EncryptionDevice("Location")
         device_hash = get_hash_for_device(device.uuid, device.location)
@@ -62,7 +62,7 @@ class TestTracker(TestCase):
         self.assertNotEqual(device_words, tracker_words)
         self.assertNotEqual(tracker_different_words, tracker_words)
 
-    def test_tracker_converts_to_known_words(self):
+    def test_tracker_converts_to_known_words(self) -> None:
         expected_hash = (
             "325AB2622D35311DB0320C9F3B421EE93017D16B9E4C7FEF06704EDA4FA5E30B"
         )

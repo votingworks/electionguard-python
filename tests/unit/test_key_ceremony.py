@@ -27,7 +27,7 @@ identity_auxiliary_encrypt = lambda message, private_key: message
 
 
 class TestKeyCeremony(TestCase):
-    def test_generate_rsa_auxiliary_key_pair(self):
+    def test_generate_rsa_auxiliary_key_pair(self) -> None:
 
         # Act
         auxiliary_key_pair = generate_rsa_auxiliary_key_pair()
@@ -37,7 +37,7 @@ class TestKeyCeremony(TestCase):
         self.assertIsNotNone(auxiliary_key_pair.public_key)
         self.assertIsNotNone(auxiliary_key_pair.secret_key)
 
-    def test_generate_election_key_pair(self):
+    def test_generate_election_key_pair(self) -> None:
         # Act
         election_key_pair = generate_election_key_pair(NUMBER_OF_GUARDIANS)
 
@@ -50,7 +50,7 @@ class TestKeyCeremony(TestCase):
         for proof in election_key_pair.polynomial.coefficient_proofs:
             self.assertTrue(proof.is_valid())
 
-    def test_generate_election_partial_key_backup(self):
+    def test_generate_election_partial_key_backup(self) -> None:
         # Arrange
         election_key_pair = generate_election_key_pair(QUORUM)
         auxiliary_key_pair = generate_rsa_auxiliary_key_pair()
@@ -78,7 +78,7 @@ class TestKeyCeremony(TestCase):
         for proof in backup.coefficient_proofs:
             self.assertTrue(proof.is_valid())
 
-    def test_verify_election_partial_key_backup(self):
+    def test_verify_election_partial_key_backup(self) -> None:
         # Arrange
         recipient_auxiliary_key_pair = generate_rsa_auxiliary_key_pair()
         sender_election_key_pair = generate_election_key_pair(QUORUM)
@@ -109,7 +109,7 @@ class TestKeyCeremony(TestCase):
         self.assertEqual(verification.verifier_id, RECIPIENT_GUARDIAN_ID)
         self.assertTrue(verification.verified)
 
-    def test_generate_election_partial_key_challenge(self):
+    def test_generate_election_partial_key_challenge(self) -> None:
         # Arrange
         recipient_auxiliary_key_pair = generate_rsa_auxiliary_key_pair()
         sender_election_key_pair = generate_election_key_pair(QUORUM)
@@ -140,7 +140,7 @@ class TestKeyCeremony(TestCase):
         for proof in challenge.coefficient_proofs:
             self.assertTrue(proof.is_valid())
 
-    def test_verify_election_partial_key_challenge(self):
+    def test_verify_election_partial_key_challenge(self) -> None:
         # Arrange
         recipient_auxiliary_key_pair = generate_rsa_auxiliary_key_pair()
         sender_election_key_pair = generate_election_key_pair(QUORUM)
@@ -171,7 +171,7 @@ class TestKeyCeremony(TestCase):
         self.assertEqual(verification.verifier_id, ALTERNATE_VERIFIER_GUARDIAN_ID)
         self.assertTrue(verification.verified)
 
-    def test_combine_election_public_keys(self):
+    def test_combine_election_public_keys(self) -> None:
         # Arrange
         random_keypair = generate_election_key_pair(QUORUM)
         random_keypair_two = generate_election_key_pair(QUORUM)

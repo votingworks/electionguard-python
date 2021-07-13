@@ -65,7 +65,6 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "gmpy2>=2.0.8",
-        "numpy>=1.18.2",
         "jsons>=1.1.2",
         "jsonschema>=3.2",
         "cryptography>=3.4.7",

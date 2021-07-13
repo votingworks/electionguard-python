@@ -18,7 +18,7 @@ identity_auxiliary_encrypt = lambda message, private_key: message
 
 
 class TestGuardian(TestCase):
-    def test_reset(self):
+    def test_reset(self) -> None:
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
         )
@@ -34,7 +34,7 @@ class TestGuardian(TestCase):
         )
         self.assertEqual(expected_quorum, guardian.ceremony_details.quorum)
 
-    def test_set_ceremony_details(self):
+    def test_set_ceremony_details(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -51,7 +51,7 @@ class TestGuardian(TestCase):
         )
         self.assertEqual(expected_quorum, guardian.ceremony_details.quorum)
 
-    def test_share_public_keys(self):
+    def test_share_public_keys(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -68,7 +68,7 @@ class TestGuardian(TestCase):
         self.assertEqual(public_keys.sequence_order, SENDER_SEQUENCE_ORDER)
         self.assertTrue(public_keys.election_public_key_proof.is_valid())
 
-    def test_save_guardian_public_keys(self):
+    def test_save_guardian_public_keys(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -85,7 +85,7 @@ class TestGuardian(TestCase):
         self.assertTrue(guardian.all_auxiliary_public_keys_received())
         self.assertTrue(guardian.all_public_keys_received())
 
-    def test_all_public_keys_received(self):
+    def test_all_public_keys_received(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -102,7 +102,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_public_keys_received())
 
-    def test_generate_auxiliary_key_pair(self):
+    def test_generate_auxiliary_key_pair(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -118,7 +118,7 @@ class TestGuardian(TestCase):
         self.assertIsNotNone(second_public_key.key)
         self.assertNotEqual(first_public_key.key, second_public_key.key)
 
-    def test_share_auxiliary_public_key(self):
+    def test_share_auxiliary_public_key(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -133,7 +133,7 @@ class TestGuardian(TestCase):
         self.assertEqual(public_key.owner_id, SENDER_GUARDIAN_ID)
         self.assertEqual(public_key.sequence_order, SENDER_SEQUENCE_ORDER)
 
-    def test_save_auxiliary_public_key(self):
+    def test_save_auxiliary_public_key(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -149,7 +149,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_auxiliary_public_keys_received())
 
-    def test_all_auxiliary_public_keys_received(self):
+    def test_all_auxiliary_public_keys_received(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -166,7 +166,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_auxiliary_public_keys_received())
 
-    def test_generate_election_key_pair(self):
+    def test_generate_election_key_pair(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -182,7 +182,7 @@ class TestGuardian(TestCase):
         self.assertIsNotNone(second_public_key.key)
         self.assertNotEqual(first_public_key.key, second_public_key.key)
 
-    def test_share_election_public_key(self):
+    def test_share_election_public_key(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -197,7 +197,7 @@ class TestGuardian(TestCase):
         self.assertEqual(public_key.owner_id, SENDER_GUARDIAN_ID)
         self.assertTrue(public_key.proof.is_valid())
 
-    def test_save_election_public_key(self):
+    def test_save_election_public_key(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -213,7 +213,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_election_public_keys_received())
 
-    def test_all_election_public_keys_received(self):
+    def test_all_election_public_keys_received(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -230,7 +230,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_election_public_keys_received())
 
-    def test_generate_election_partial_key_backups(self):
+    def test_generate_election_partial_key_backups(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -261,7 +261,7 @@ class TestGuardian(TestCase):
         for proof in key_backup.coefficient_proofs:
             proof.is_valid()
 
-    def test_share_election_partial_key_backup(self):
+    def test_share_election_partial_key_backup(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -285,7 +285,7 @@ class TestGuardian(TestCase):
         for proof in key_backup.coefficient_proofs:
             proof.is_valid()
 
-    def test_save_election_partial_key_backup(self):
+    def test_save_election_partial_key_backup(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -303,7 +303,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(other_guardian.all_election_partial_key_backups_received())
 
-    def test_all_election_partial_key_backups_received(self):
+    def test_all_election_partial_key_backups_received(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -320,7 +320,7 @@ class TestGuardian(TestCase):
         other_guardian.save_election_partial_key_backup(key_backup)
         self.assertTrue(other_guardian.all_election_partial_key_backups_received())
 
-    def test_verify_election_partial_key_backup(self):
+    def test_verify_election_partial_key_backup(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -345,7 +345,7 @@ class TestGuardian(TestCase):
         self.assertEqual(verification.verifier_id, RECIPIENT_GUARDIAN_ID)
         self.assertTrue(verification.verified)
 
-    def test_verify_election_partial_key_challenge(self):
+    def test_verify_election_partial_key_challenge(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -380,7 +380,7 @@ class TestGuardian(TestCase):
         self.assertEqual(verification.verifier_id, ALTERNATE_VERIFIER_GUARDIAN_ID)
         self.assertTrue(verification.verified)
 
-    def test_publish_election_backup_challenge(self):
+    def test_publish_election_backup_challenge(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -415,7 +415,7 @@ class TestGuardian(TestCase):
         for proof in challenge.coefficient_proofs:
             proof.is_valid()
 
-    def test_save_election_partial_key_verification(self):
+    def test_save_election_partial_key_verification(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -437,7 +437,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(guardian.all_election_partial_key_backups_verified)
 
-    def test_all_election_partial_key_backups_verified(self):
+    def test_all_election_partial_key_backups_verified(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM
@@ -460,7 +460,7 @@ class TestGuardian(TestCase):
         # Assert
         self.assertTrue(all_saved)
 
-    def test_publish_joint_key(self):
+    def test_publish_joint_key(self) -> None:
         # Arrange
         guardian = Guardian(
             SENDER_GUARDIAN_ID, SENDER_SEQUENCE_ORDER, NUMBER_OF_GUARDIANS, QUORUM

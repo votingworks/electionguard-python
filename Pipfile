@@ -21,7 +21,6 @@ twine = "*"
 typish = '*'
 
 [packages]
-numpy = '>=1.18.2'
 jsons = '>=1.1.2'
 psutil = '>=5.7.2'
 cryptography = ">=3.4.7"
