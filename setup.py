@@ -70,6 +70,6 @@ setup(
         "jsonschema>=3.2",
         "cryptography>=3.4.7",
         "psutil>=5.7.2",
-        "urllib3>=1.26.4",
+        "urllib3>=1.26.5",
     ],
 )
