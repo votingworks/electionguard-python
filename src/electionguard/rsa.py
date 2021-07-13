@@ -1,11 +1,13 @@
+from typing import Optional, NamedTuple
+
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.asymmetric.rsa import (
     generate_private_key,
-    RSAPrivateKey,
     RSAPrivateKeyWithSerialization,
     RSAPublicKey,
+    RSAPrivateKey,
 )
-from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     load_pem_private_key,
@@ -14,8 +16,6 @@ from cryptography.hazmat.primitives.serialization import (
     PrivateFormat,
     PublicFormat,
 )
-from typing import Optional, NamedTuple
-
 
 PUBLIC_EXPONENT = 65537
 KEY_SIZE = 4096
@@ -68,6 +68,8 @@ def rsa_encrypt(message: str, public_key: str) -> Optional[str]:
     """
     data = bytes(public_key, ISO_ENCODING)
     rsa_public_key = load_pem_public_key(data, backend=default_backend())
+    if not isinstance(rsa_public_key, RSAPublicKey):
+        raise RuntimeError("unexpected type for RSA key")
     plaintext = bytes.fromhex(message)
     if len(plaintext) > MAX_BITS:
         return None
@@ -88,6 +90,8 @@ def rsa_decrypt(encrypted_message: str, private_key: str) -> Optional[str]:
     rsa_private_key = load_pem_private_key(
         data, password=None, backend=default_backend()
     )
+    if not isinstance(rsa_private_key, RSAPrivateKey):
+        raise RuntimeError("unexpected type for RSA key")
     ciphertext = bytes(encrypted_message, ISO_ENCODING)
     try:
         plaintext = rsa_private_key.decrypt(ciphertext, PKCS1v15())
