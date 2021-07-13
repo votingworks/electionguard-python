@@ -139,7 +139,7 @@ class ElementModP:
         Validates that this element is in Z^r_p.
         Returns true if all is good, false if something's wrong.
         """
-        residue = pow_p(self, ElementModQ(mpz(Q))) == ONE_MOD_P
+        residue = pow_p(self, ElementModQ(_Q_mpz)) == ONE_MOD_P
         return self.is_in_bounds() and residue
 
     # overload != (not equal to) operator
@@ -170,13 +170,21 @@ class ElementModP:
 
 
 # Common constants
-ZERO_MOD_Q: Final[ElementModQ] = ElementModQ(mpz(0))
-ONE_MOD_Q: Final[ElementModQ] = ElementModQ(mpz(1))
-TWO_MOD_Q: Final[ElementModQ] = ElementModQ(mpz(2))
+_zero_mpz = mpz(0)
+_one_mpz = mpz(1)
+_two_mpz = mpz(2)
+_P_mpz = mpz(P)
+_G_mpz = mpz(G)
+_Q_mpz = mpz(Q)
 
-ZERO_MOD_P: Final[ElementModP] = ElementModP(mpz(0))
-ONE_MOD_P: Final[ElementModP] = ElementModP(mpz(1))
-TWO_MOD_P: Final[ElementModP] = ElementModP(mpz(2))
+ZERO_MOD_Q: Final[ElementModQ] = ElementModQ(_zero_mpz)
+ONE_MOD_Q: Final[ElementModQ] = ElementModQ(_one_mpz)
+TWO_MOD_Q: Final[ElementModQ] = ElementModQ(_two_mpz)
+
+ZERO_MOD_P: Final[ElementModP] = ElementModP(_zero_mpz)
+ONE_MOD_P: Final[ElementModP] = ElementModP(_one_mpz)
+TWO_MOD_P: Final[ElementModP] = ElementModP(_two_mpz)
+G_MOD_P: Final[ElementModP] = ElementModP(_G_mpz)
 
 ElementModPOrQ = Union[ElementModP, ElementModQ]
 ElementModPOrQorInt = Union[ElementModP, ElementModQ, int]
@@ -264,11 +272,11 @@ def add_q(*elems: ElementModQorInt) -> ElementModQ:
     """
     Adds together one or more elements in Q, returns the sum mod Q.
     """
-    t = mpz(0)
+    t = _zero_mpz
     for e in elems:
         if isinstance(e, int):
             e = int_to_q_unchecked(e)
-        t = (t + e.elem) % Q
+        t = (t + e.elem) % _Q_mpz
 
     return ElementModQ(t)
 
@@ -282,7 +290,7 @@ def a_minus_b_q(a: ElementModQorInt, b: ElementModQorInt) -> ElementModQ:
     if isinstance(b, int):
         b = int_to_q_unchecked(b)
 
-    return ElementModQ((a.elem - b.elem) % Q)
+    return ElementModQ((a.elem - b.elem) % _Q_mpz)
 
 
 def div_p(a: ElementModPOrQorInt, b: ElementModPOrQorInt) -> ElementModP:
@@ -294,7 +302,7 @@ def div_p(a: ElementModPOrQorInt, b: ElementModPOrQorInt) -> ElementModP:
     if isinstance(b, int):
         b = int_to_p_unchecked(b)
 
-    inverse = invert(b.elem, mpz(P))
+    inverse = invert(b.elem, _P_mpz)
     return mult_p(a, int_to_p_unchecked(inverse))
 
 
@@ -307,7 +315,7 @@ def div_q(a: ElementModPOrQorInt, b: ElementModPOrQorInt) -> ElementModQ:
     if isinstance(b, int):
         b = int_to_p_unchecked(b)
 
-    inverse = invert(b.elem, mpz(Q))
+    inverse = invert(b.elem, _Q_mpz)
     return mult_q(a, int_to_q_unchecked(inverse))
 
 
@@ -333,7 +341,7 @@ def a_plus_bc_q(
     if isinstance(c, int):
         c = int_to_q_unchecked(c)
 
-    return ElementModQ((a.elem + b.elem * c.elem) % Q)
+    return ElementModQ((a.elem + b.elem * c.elem) % _Q_mpz)
 
 
 def mult_inv_p(e: ElementModPOrQorInt) -> ElementModP:
@@ -387,11 +395,11 @@ def mult_p(*elems: ElementModPOrQorInt) -> ElementModP:
 
     :param elems: Zero or more elements in [0,P).
     """
-    product = mpz(1)
+    product = _one_mpz
     for x in elems:
         if isinstance(x, int):
             x = int_to_p_unchecked(x)
-        product = (product * x.elem) % P
+        product = (product * x.elem) % _P_mpz
     return ElementModP(product)
 
 
@@ -401,11 +409,11 @@ def mult_q(*elems: ElementModPOrQorInt) -> ElementModQ:
 
     :param elems: Zero or more elements in [0,P).
     """
-    product = mpz(1)
+    product = _one_mpz
     for x in elems:
         if isinstance(x, int):
             x = int_to_p_unchecked(x)
-        product = (product * x.elem) % Q
+        product = (product * x.elem) % _Q_mpz
     return ElementModQ(product)
 
 
@@ -415,7 +423,12 @@ def g_pow_p(e: ElementModPOrQ) -> ElementModP:
 
     :param e: An element in [0,P).
     """
-    return pow_p(ElementModP(mpz(G)), e)
+    if e == 0:
+        return ONE_MOD_P
+    if e == 1:
+        return G_MOD_P
+
+    return pow_p(ElementModP(_G_mpz), e)
 
 
 def rand_q() -> ElementModQ:
