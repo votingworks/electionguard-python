@@ -67,7 +67,7 @@ def rsa_encrypt(message: str, public_key: str) -> Optional[str]:
     :return: Encrypted message
     """
     data = bytes(public_key, ISO_ENCODING)
-    rsa_public_key: RSAPublicKey = load_pem_public_key(data, backend=default_backend())
+    rsa_public_key = load_pem_public_key(data, backend=default_backend())
     plaintext = bytes.fromhex(message)
     if len(plaintext) > MAX_BITS:
         return None
@@ -85,7 +85,7 @@ def rsa_decrypt(encrypted_message: str, private_key: str) -> Optional[str]:
     """
 
     data = bytes(private_key, ISO_ENCODING)
-    rsa_private_key: RSAPrivateKey = load_pem_private_key(
+    rsa_private_key = load_pem_private_key(
         data, password=None, backend=default_backend()
     )
     ciphertext = bytes(encrypted_message, ISO_ENCODING)
