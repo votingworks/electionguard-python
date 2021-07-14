@@ -5,9 +5,17 @@
 from base64 import b16decode
 from dataclasses import dataclass
 from secrets import randbelow
-from typing import Any, Final, Optional, Union
+from typing import Any, Final, Optional, Union, List
 
-from gmpy2 import mpz, powmod, invert, to_binary, from_binary
+from gmpy2 import (
+    powmod,
+    invert,
+    to_binary,
+    from_binary,
+    random_state,
+    xmpz,
+    mpz_urandomb,
+)
 
 # Constants used by ElectionGuard
 Q: Final[int] = pow(2, 256) - 189
@@ -25,7 +33,7 @@ Q_MINUS_ONE: Final[int] = Q - 1
 class ElementModQ:
     """An element of the smaller `mod q` space, i.e., in [0, Q), where Q is a 256-bit prime."""
 
-    elem: mpz
+    elem: xmpz
 
     def to_bytes(self) -> bytes:
         """
@@ -94,14 +102,14 @@ class ElementModQ:
     def __setstate__(self, state: dict) -> None:
         if "elem" not in state or not isinstance(state["elem"], int):
             raise AttributeError("couldn't restore state, malformed input")
-        self.elem = mpz(state["elem"])
+        self.elem = xmpz(state["elem"])
 
 
 @dataclass
 class ElementModP:
     """An element of the larger `mod p` space, i.e., in [0, P), where P is a 4096-bit prime."""
 
-    elem: mpz
+    elem: xmpz
 
     def to_hex(self) -> str:
         """
@@ -166,16 +174,17 @@ class ElementModP:
     def __setstate__(self, state: dict) -> None:
         if "elem" not in state or not isinstance(state["elem"], int):
             raise AttributeError("couldn't restore state, malformed input")
-        self.elem = mpz(state["elem"])
+        self.elem = xmpz(state["elem"])
 
 
 # Common constants
-_zero_mpz = mpz(0)
-_one_mpz = mpz(1)
-_two_mpz = mpz(2)
-_P_mpz = mpz(P)
-_G_mpz = mpz(G)
-_Q_mpz = mpz(Q)
+_negative_one_mpz = xmpz(-1)
+_zero_mpz = xmpz(0)
+_one_mpz = xmpz(1)
+_two_mpz = xmpz(2)
+_P_mpz = xmpz(P)
+_G_mpz = xmpz(G)
+_Q_mpz = xmpz(Q)
 
 ZERO_MOD_Q: Final[ElementModQ] = ElementModQ(_zero_mpz)
 ONE_MOD_Q: Final[ElementModQ] = ElementModQ(_one_mpz)
@@ -191,6 +200,92 @@ ElementModPOrQorInt = Union[ElementModP, ElementModQ, int]
 ElementModQorInt = Union[ElementModQ, int]
 ElementModPorInt = Union[ElementModP, int]
 
+# Modular exponentiation performance improvements via Olivier Pereira
+# https://github.com/pereira/expo-fixed-basis/blob/main/powradix.py
+
+# Number of exponentiations to be computed in a single basis
+_n_exponentiations = 1000
+# Size of the exponent
+_e_size = 256
+
+# Picking a list of n exponents
+_seed = random_state()
+_e_list = [xmpz(mpz_urandomb(_seed, _e_size)) for i in range(_n_exponentiations)]
+
+
+# Basic quare and multiply, precomputing squares, and taking advantage of iterations on xmpz
+# It is equivalent to PowRadix for k=1 but runs slightly faster
+@dataclass
+class PowRadix2:
+    squares: List[xmpz]
+
+    def __init__(self, basis: xmpz):
+        squares = []
+        gs = basis
+        for i in range(_e_size):
+            squares.append(gs)
+            gs = gs * gs % _P_mpz
+        self.squares = squares
+
+    def pow(self, e: xmpz) -> xmpz:
+        y = _one_mpz
+        e = e % _Q_mpz
+        for i in e.iter_set():
+            y = y * self.squares[i] % _P_mpz
+        return y
+
+
+# Radix method
+class PowRadix:
+    table_length: int
+    k: int
+    table: List[List[xmpz]]
+
+    def __init__(self, basis: xmpz, k: int = 1, n: int = None):
+        # if n is given, then looking for the best k
+        if n:
+            k = 1
+            while (0.69 * k - 1) * 2 ** k < n:  # Equality happens for optimal k
+                k += 1
+            k -= 1  # limiting amount of precomputation
+        self.table_length = -(-_e_size // k)  # Double negative to take the ceiling
+        self.k = k
+        table: List[List[xmpz]] = []
+        row_basis = basis
+        running_basis = row_basis
+        for _ in range(self.table_length):
+            row = [_one_mpz]
+            for j in range(1, 2 ** k):
+                row.append(running_basis)
+                running_basis = running_basis * row_basis % _P_mpz
+            table.append(row)
+            row_basis = running_basis
+        self.table = table
+
+    def pow(self, e: xmpz) -> xmpz:
+        e = e % _Q_mpz
+        y = _one_mpz
+        for i in range(self.table_length):
+            e_slice = e[i * self.k : (i + 1) * self.k]
+            y = y * self.table[i][e_slice] % _P_mpz
+        return y
+
+    def alt_pow(self, e: xmpz) -> xmpz:
+        # Trying to see if this runs faster, but it does not
+        e = e % _Q_mpz
+        y = _one_mpz
+        slice_start = 0
+        for row in self.table:
+            slice_end = slice_start + self.k
+            e_slice = e[slice_start:slice_end]
+            slice_start = slice_end
+            y = y * row[e_slice] % _P_mpz
+        return y
+
+
+_g_radix_2 = PowRadix2(_G_mpz)
+_g_radix = PowRadix(_G_mpz, n=_n_exponentiations)
+
 
 def hex_to_q(input: str) -> Optional[ElementModQ]:
     """
@@ -200,7 +295,7 @@ def hex_to_q(input: str) -> Optional[ElementModQ]:
     """
     i = int(input, 16)
     if 0 <= i < Q:
-        return ElementModQ(mpz(i))
+        return ElementModQ(xmpz(i))
     else:
         return None
 
@@ -213,7 +308,7 @@ def int_to_q(input: Union[str, int]) -> Optional[ElementModQ]:
     """
     i = int(input)
     if 0 <= i < Q:
-        return ElementModQ(mpz(i))
+        return ElementModQ(xmpz(i))
     else:
         return None
 
@@ -226,7 +321,7 @@ def int_to_q_unchecked(i: Union[str, int]) -> ElementModQ:
     you're absolutely, positively, certain the input is in-bounds.
     """
 
-    m = mpz(int(i))
+    m = xmpz(int(i))
     return ElementModQ(m)
 
 
@@ -238,7 +333,7 @@ def int_to_p(input: Union[str, int]) -> Optional[ElementModP]:
     """
     i = int(input)
     if 0 <= i < P:
-        return ElementModP(mpz(i))
+        return ElementModP(xmpz(i))
     else:
         return None
 
@@ -250,7 +345,7 @@ def int_to_p_unchecked(i: Union[str, int]) -> ElementModP:
     element (i.e., outside of [0,P)). Useful for tests or if
     you're absolutely, positively, certain the input is in-bounds.
     """
-    m = mpz(int(i))
+    m = xmpz(int(i))
     return ElementModP(m)
 
 
@@ -265,7 +360,7 @@ def bytes_to_q(b: bytes) -> ElementModQ:
     """
     Returns an element from a byte sequence.
     """
-    return ElementModQ(mpz(from_binary(b)))
+    return ElementModQ(xmpz(from_binary(b)))
 
 
 def add_q(*elems: ElementModQorInt) -> ElementModQ:
@@ -354,7 +449,7 @@ def mult_inv_p(e: ElementModPOrQorInt) -> ElementModP:
         e = int_to_p_unchecked(e)
 
     assert e.elem != 0, "No multiplicative inverse for zero"
-    return ElementModP(powmod(e.elem, -1, P))
+    return ElementModP(powmod(e.elem, _negative_one_mpz, _P_mpz))
 
 
 def pow_p(b: ElementModPOrQorInt, e: ElementModPOrQorInt) -> ElementModP:
@@ -370,7 +465,7 @@ def pow_p(b: ElementModPOrQorInt, e: ElementModPOrQorInt) -> ElementModP:
     if isinstance(e, int):
         e = int_to_p_unchecked(e)
 
-    return ElementModP(powmod(b.elem, e.elem, P))
+    return ElementModP(powmod(b.elem, e.elem, _P_mpz))
 
 
 def pow_q(b: ElementModQorInt, e: ElementModQorInt) -> ElementModQ:
@@ -386,7 +481,7 @@ def pow_q(b: ElementModQorInt, e: ElementModQorInt) -> ElementModQ:
     if isinstance(e, int):
         e = int_to_q_unchecked(e)
 
-    return ElementModQ(powmod(b.elem, e.elem, Q))
+    return ElementModQ(powmod(b.elem, e.elem, _Q_mpz))
 
 
 def mult_p(*elems: ElementModPOrQorInt) -> ElementModP:
@@ -423,12 +518,13 @@ def g_pow_p(e: ElementModPOrQ) -> ElementModP:
 
     :param e: An element in [0,P).
     """
-    if e == 0:
+    if e.elem == 0:
         return ONE_MOD_P
-    if e == 1:
+    if e.elem == 1:
         return G_MOD_P
 
-    return pow_p(ElementModP(_G_mpz), e)
+    # return pow_p(G_MOD_P, e)
+    return ElementModP(_g_radix.pow(e.elem))
 
 
 def rand_q() -> ElementModQ:
