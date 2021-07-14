@@ -229,6 +229,7 @@ class PowRadix2:
 
     def pow(self, e: xmpz) -> xmpz:
         y = _one_mpz
+        e = e % _Q_mpz
         for i in e.iter_set():
             y = y * self.squares[i] % _P_mpz
         return y
@@ -262,6 +263,7 @@ class PowRadix:
         self.table = table
 
     def pow(self, e: xmpz) -> xmpz:
+        e = e % _Q_mpz
         y = _one_mpz
         for i in range(self.table_length):
             e_slice = e[i * self.k : (i + 1) * self.k]
@@ -270,6 +272,7 @@ class PowRadix:
 
     def alt_pow(self, e: xmpz) -> xmpz:
         # Trying to see if this runs faster, but it does not
+        e = e % _Q_mpz
         y = _one_mpz
         slice_start = 0
         for row in self.table:
