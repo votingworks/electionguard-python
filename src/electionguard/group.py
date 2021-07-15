@@ -105,11 +105,82 @@ class ElementModQ:
         self.elem = xmpz(state["elem"])
 
 
+# Modular exponentiation performance improvements via Olivier Pereira
+# https://github.com/pereira/expo-fixed-basis/blob/main/powradix.py
+
+# Number of exponentiations to be computed in a single basis
+_n_exponentiations = 1000
+# Size of the exponent
+_e_size = 256
+
+# Picking a list of n exponents
+_seed = random_state()
+_e_list = [xmpz(mpz_urandomb(_seed, _e_size)) for i in range(_n_exponentiations)]
+
+
+# Radix method
+class PowRadix:
+    table_length: int
+    k: int
+    table: List[List[xmpz]]
+
+    def __init__(self, basis: xmpz, k: int = 1, n: int = None):
+        # if n is given, then looking for the best k
+        if n:
+            k = 1
+            while (0.69 * k - 1) * 2 ** k < n:  # Equality happens for optimal k
+                k += 1
+            k -= 1  # limiting amount of precomputation
+        self.table_length = -(-_e_size // k)  # Double negative to take the ceiling
+        self.k = k
+        table: List[List[xmpz]] = []
+        row_basis = basis
+        running_basis = row_basis
+        for _ in range(self.table_length):
+            row = [_one_mpz]
+            for j in range(1, 2 ** k):
+                row.append(running_basis)
+                running_basis = running_basis * row_basis % _P_mpz
+            table.append(row)
+            row_basis = running_basis
+        self.table = table
+
+    def pow(self, e: xmpz) -> xmpz:
+        e = e % _Q_mpz
+        y = _one_mpz
+        for i in range(self.table_length):
+            e_slice = e[i * self.k : (i + 1) * self.k]
+            y = y * self.table[i][e_slice] % _P_mpz
+        return y
+
+
 @dataclass
 class ElementModP:
     """An element of the larger `mod p` space, i.e., in [0, P), where P is a 4096-bit prime."""
 
     elem: xmpz
+    pow_radix: Optional[PowRadix] = None
+
+    def accelerate_pow(self) -> None:
+        """
+        Uses precomputation, and roughly 84MB of state, to accelerate the `pow_p` method
+        for this specific element
+        """
+        if self.pow_radix is None:
+            self.pow_radix = PowRadix(self.elem, n=_n_exponentiations)
+
+    def pow_p(self, exponent: "ElementModPOrQ") -> "ElementModP":
+        """
+        Computes self ^ exponent mod p, taking advantage of any acceleration that might
+        have been provided by use of `accelerate_pow`. Note that these two calls are
+        equivalent::
+          x = pow_p(base, exponent)
+          x = base.pow_p(exponent)
+        """
+        if self.pow_radix is None:
+            return ElementModP(powmod(self.elem, exponent.elem, _P_mpz))
+        else:
+            return ElementModP(self.pow_radix.pow(exponent.elem))
 
     def to_hex(self) -> str:
         """
@@ -194,97 +265,12 @@ ZERO_MOD_P: Final[ElementModP] = ElementModP(_zero_mpz)
 ONE_MOD_P: Final[ElementModP] = ElementModP(_one_mpz)
 TWO_MOD_P: Final[ElementModP] = ElementModP(_two_mpz)
 G_MOD_P: Final[ElementModP] = ElementModP(_G_mpz)
+G_MOD_P.accelerate_pow()
 
 ElementModPOrQ = Union[ElementModP, ElementModQ]
 ElementModPOrQorInt = Union[ElementModP, ElementModQ, int]
 ElementModQorInt = Union[ElementModQ, int]
 ElementModPorInt = Union[ElementModP, int]
-
-# Modular exponentiation performance improvements via Olivier Pereira
-# https://github.com/pereira/expo-fixed-basis/blob/main/powradix.py
-
-# Number of exponentiations to be computed in a single basis
-_n_exponentiations = 1000
-# Size of the exponent
-_e_size = 256
-
-# Picking a list of n exponents
-_seed = random_state()
-_e_list = [xmpz(mpz_urandomb(_seed, _e_size)) for i in range(_n_exponentiations)]
-
-
-# Basic quare and multiply, precomputing squares, and taking advantage of iterations on xmpz
-# It is equivalent to PowRadix for k=1 but runs slightly faster
-@dataclass
-class PowRadix2:
-    squares: List[xmpz]
-
-    def __init__(self, basis: xmpz):
-        squares = []
-        gs = basis
-        for i in range(_e_size):
-            squares.append(gs)
-            gs = gs * gs % _P_mpz
-        self.squares = squares
-
-    def pow(self, e: xmpz) -> xmpz:
-        y = _one_mpz
-        e = e % _Q_mpz
-        for i in e.iter_set():
-            y = y * self.squares[i] % _P_mpz
-        return y
-
-
-# Radix method
-class PowRadix:
-    table_length: int
-    k: int
-    table: List[List[xmpz]]
-
-    def __init__(self, basis: xmpz, k: int = 1, n: int = None):
-        # if n is given, then looking for the best k
-        if n:
-            k = 1
-            while (0.69 * k - 1) * 2 ** k < n:  # Equality happens for optimal k
-                k += 1
-            k -= 1  # limiting amount of precomputation
-        self.table_length = -(-_e_size // k)  # Double negative to take the ceiling
-        self.k = k
-        table: List[List[xmpz]] = []
-        row_basis = basis
-        running_basis = row_basis
-        for _ in range(self.table_length):
-            row = [_one_mpz]
-            for j in range(1, 2 ** k):
-                row.append(running_basis)
-                running_basis = running_basis * row_basis % _P_mpz
-            table.append(row)
-            row_basis = running_basis
-        self.table = table
-
-    def pow(self, e: xmpz) -> xmpz:
-        e = e % _Q_mpz
-        y = _one_mpz
-        for i in range(self.table_length):
-            e_slice = e[i * self.k : (i + 1) * self.k]
-            y = y * self.table[i][e_slice] % _P_mpz
-        return y
-
-    def alt_pow(self, e: xmpz) -> xmpz:
-        # Trying to see if this runs faster, but it does not
-        e = e % _Q_mpz
-        y = _one_mpz
-        slice_start = 0
-        for row in self.table:
-            slice_end = slice_start + self.k
-            e_slice = e[slice_start:slice_end]
-            slice_start = slice_end
-            y = y * row[e_slice] % _P_mpz
-        return y
-
-
-_g_radix_2 = PowRadix2(_G_mpz)
-_g_radix = PowRadix(_G_mpz, n=_n_exponentiations)
 
 
 def hex_to_q(input: str) -> Optional[ElementModQ]:
@@ -463,9 +449,14 @@ def pow_p(b: ElementModPOrQorInt, e: ElementModPOrQorInt) -> ElementModP:
     if isinstance(b, int):
         b = int_to_p_unchecked(b)
     if isinstance(e, int):
-        e = int_to_p_unchecked(e)
+        e = int_to_q_unchecked(e)
 
-    return ElementModP(powmod(b.elem, e.elem, _P_mpz))
+    if isinstance(b, ElementModP):
+        # this will use the acceleration structure, if it's there
+        return b.pow_p(e)
+    else:
+        # why on earth somebody's using an ElementModQ in the base?
+        return ElementModP(powmod(b.elem, e.elem, _P_mpz))
 
 
 def pow_q(b: ElementModQorInt, e: ElementModQorInt) -> ElementModQ:
@@ -524,7 +515,7 @@ def g_pow_p(e: ElementModPOrQ) -> ElementModP:
         return G_MOD_P
 
     # return pow_p(G_MOD_P, e)
-    return ElementModP(_g_radix.pow(e.elem))
+    return G_MOD_P.pow_p(e)
 
 
 def rand_q() -> ElementModQ:

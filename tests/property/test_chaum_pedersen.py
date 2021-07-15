@@ -284,6 +284,32 @@ class TestConstantChaumPedersen(TestCase):
         )
         self.assertFalse(proof_bad3.is_valid(message, keypair.public_key, ONE_MOD_Q))
 
+    @settings(
+        deadline=timedelta(milliseconds=2000),
+        suppress_health_check=[HealthCheck.too_slow],
+        max_examples=10,
+    )
+    @given(
+        elgamal_keypairs(),
+        elements_mod_q_no_zero(),
+        elements_mod_q(),
+        integers(0, 100),
+    )
+    def test_ccp_proof_with_accelerated_pow(
+        self,
+        keypair: ElGamalKeyPair,
+        nonce: ElementModQ,
+        seed: ElementModQ,
+        constant: int,
+    ):
+        keypair.public_key.accelerate_pow()
+        message = get_optional(elgamal_encrypt(constant, nonce, keypair.public_key))
+
+        proof = make_constant_chaum_pedersen(
+            message, constant, nonce, keypair.public_key, seed, ONE_MOD_Q
+        )
+        self.assertTrue(proof.is_valid(message, keypair.public_key, ONE_MOD_Q))
+
 
 class TestGenericChaumPedersen(TestCase):
     @settings(
