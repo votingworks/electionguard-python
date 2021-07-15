@@ -113,11 +113,6 @@ _n_exponentiations = 1000
 # Size of the exponent
 _e_size = 256
 
-# Picking a list of n exponents
-_seed = random_state()
-_e_list = [xmpz(mpz_urandomb(_seed, _e_size)) for i in range(_n_exponentiations)]
-
-
 # Radix method
 class PowRadix:
     table_length: int
