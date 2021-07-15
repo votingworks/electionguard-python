@@ -15,9 +15,7 @@ from .group import (
     int_to_q,
     ZERO_MOD_Q,
     mult_inv_p,
-    G,
-    int_to_p_unchecked,
-    int_to_p,
+    int_to_p, G_MOD_P,
 )
 from .hash import hash_elems
 from .logs import log_warning
@@ -730,7 +728,7 @@ class ChaumPedersenDecryptionProof(Proof):
         blinder = mult_p(ciphertext.data, mult_inv_p(g_exp_plaintext))
 
         valid_proof = self.proof.is_valid(
-            int_to_p_unchecked(G),
+            G_MOD_P,
             public_key,
             ciphertext.pad,
             blinder,

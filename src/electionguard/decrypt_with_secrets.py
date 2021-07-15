@@ -24,8 +24,7 @@ from .group import (
     pow_p,
     mult_p,
     mult_inv_p,
-    int_to_p_unchecked,
-    G,
+    G_MOD_P,
 )
 from .logs import log_warning
 from .nonces import Nonces
@@ -104,7 +103,7 @@ def decrypt_ciphertext_with_proof(
     plaintext = discrete_log(g_exp_plaintext)
 
     proof = make_chaum_pedersen_generic(
-        int_to_p_unchecked(G), ciphertext.pad, keypair.secret_key, seed, hash_header
+        G_MOD_P, ciphertext.pad, keypair.secret_key, seed, hash_header
     )
     return plaintext, ChaumPedersenDecryptionProof(proof)
 
