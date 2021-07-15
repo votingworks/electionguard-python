@@ -12,9 +12,7 @@ from gmpy2 import (
     invert,
     to_binary,
     from_binary,
-    random_state,
     xmpz,
-    mpz_urandomb,
 )
 
 # Constants used by ElectionGuard
