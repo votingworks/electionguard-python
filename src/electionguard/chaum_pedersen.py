@@ -15,7 +15,8 @@ from .group import (
     int_to_q,
     ZERO_MOD_Q,
     mult_inv_p,
-    int_to_p, G_MOD_P,
+    int_to_p,
+    G_MOD_P,
 )
 from .hash import hash_elems
 from .logs import log_warning
@@ -417,18 +418,25 @@ def make_disjunctive_chaum_pedersen_zero(
     """
     (alpha, beta) = message
 
+    # Note: this is using Benaloh's revised equations ("Efficient Implementation of
+    # ElectionGuard Ballot Encryption and Proofs", 2021).
+
     # Pick three random numbers in Q.
-    c1, v1, u0 = Nonces(seed, "disjoint-chaum-pedersen-proof")[0:3]
+    u, v, w = Nonces(seed, "disjoint-chaum-pedersen-proof")[0:3]
 
     # Compute the NIZKP
-    a0 = g_pow_p(u0)
-    b0 = pow_p(k, u0)
-    q_minus_c1 = negate_q(c1)
-    a1 = mult_p(g_pow_p(v1), pow_p(alpha, q_minus_c1))
-    b1 = mult_p(pow_p(k, v1), g_pow_p(c1), pow_p(beta, q_minus_c1))
+    a0 = g_pow_p(u)
+    b0 = k.pow_p(u)
+    a1 = g_pow_p(v)
+    b1 = mult_p(g_pow_p(w), k.pow_p(v))
     c = hash_elems(q, alpha, beta, a0, b0, a1, b1)
-    c0 = a_minus_b_q(c, c1)
-    v0 = a_plus_bc_q(u0, c0, r)
+    c0 = a_minus_b_q(c, w)
+    c1 = w
+    v0 = a_plus_bc_q(u, c0, r)
+    v1 = a_plus_bc_q(v, c1, r)
+
+    # failing: consistent_gc1kv1
+    consistent_gc1kv1 = mult_p(g_pow_p(c1), pow_p(k, v1)) == mult_p(b1, pow_p(beta, c1))
 
     return DisjunctiveChaumPedersenProof(a0, b0, a1, b1, c0, c1, c, v0, v1)
 
@@ -452,18 +460,22 @@ def make_disjunctive_chaum_pedersen_one(
     """
     (alpha, beta) = message
 
+    # Note: this is using Benaloh's revised equations ("Efficient Implementation of
+    # ElectionGuard Ballot Encryption and Proofs", 2021).
+
     # Pick three random numbers in Q.
-    c0, v0, u1 = Nonces(seed, "disjoint-chaum-pedersen-proof")[0:3]
+    u, v, w = Nonces(seed, "disjoint-chaum-pedersen-proof")[0:3]
 
     # Compute the NIZKP
-    q_minus_c0 = negate_q(c0)
-    a0 = mult_p(g_pow_p(v0), pow_p(alpha, q_minus_c0))
-    b0 = mult_p(pow_p(k, v0), pow_p(beta, q_minus_c0))
-    a1 = g_pow_p(u1)
-    b1 = pow_p(k, u1)
+    a0 = g_pow_p(v)
+    b0 = mult_p(g_pow_p(w), k.pow_p(v))
+    a1 = g_pow_p(u)
+    b1 = k.pow_p(u)
     c = hash_elems(q, alpha, beta, a0, b0, a1, b1)
-    c1 = a_minus_b_q(c, c0)
-    v1 = a_plus_bc_q(u1, c1, r)
+    c0 = negate_q(w)
+    c1 = add_q(c, w)
+    v0 = a_plus_bc_q(v, c0, r)
+    v1 = a_plus_bc_q(u, c1, r)
 
     return DisjunctiveChaumPedersenProof(a0, b0, a1, b1, c0, c1, c, v0, v1)
 
