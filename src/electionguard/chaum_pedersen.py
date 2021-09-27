@@ -435,9 +435,6 @@ def make_disjunctive_chaum_pedersen_zero(
     v0 = a_plus_bc_q(u, c0, r)
     v1 = a_plus_bc_q(v, c1, r)
 
-    # failing: consistent_gc1kv1
-    consistent_gc1kv1 = mult_p(g_pow_p(c1), pow_p(k, v1)) == mult_p(b1, pow_p(beta, c1))
-
     return DisjunctiveChaumPedersenProof(a0, b0, a1, b1, c0, c1, c, v0, v1)
 
 
