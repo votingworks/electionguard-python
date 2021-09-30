@@ -281,6 +281,7 @@ def encrypt_contest(
                     elgamal_public_key,
                     crypto_extended_base_hash,
                     contest_nonce,
+                    should_verify_proofs=should_verify_proofs,
                 )
                 break
 
@@ -293,6 +294,7 @@ def encrypt_contest(
                 elgamal_public_key,
                 crypto_extended_base_hash,
                 contest_nonce,
+                should_verify_proofs=should_verify_proofs,
             )
 
         if encrypted_selection is None:
@@ -324,7 +326,7 @@ def encrypt_contest(
             crypto_extended_base_hash=crypto_extended_base_hash,
             nonce_seed=contest_nonce,
             is_placeholder=True,
-            should_verify_proofs=True,
+            should_verify_proofs=should_verify_proofs,
         )
         if encrypted_selection is None:
             return None  # log will have happened earlier
@@ -440,6 +442,7 @@ def encrypt_ballot(
             context.elgamal_public_key,
             context.crypto_extended_base_hash,
             nonce_seed,
+            should_verify_proofs=should_verify_proofs,
         )
 
         if encrypted_contest is None:
